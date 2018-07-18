@@ -21,3 +21,21 @@
 
 # virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
 hs_err_pid*
+
+# Serenity-BDD
+/target/
+
+# Intellij
+/.idea/
+/out/
+
+# Gradle
+/.gradle/
+/gradle/
+/build/
+gradlew.bat
+gradlew
+
+# Eclipse
+.classpath
+.project
