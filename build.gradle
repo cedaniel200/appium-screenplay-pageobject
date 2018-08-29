@@ -2,6 +2,7 @@ group 'com.cedaniel200.screenplay'
 version '1.0-SNAPSHOT'
 
 apply plugin: 'java'
+apply plugin: 'net.serenity-bdd.aggregator'
 
 sourceCompatibility = 1.8
 
