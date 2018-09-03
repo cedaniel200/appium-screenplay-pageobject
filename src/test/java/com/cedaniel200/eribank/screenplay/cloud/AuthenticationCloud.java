@@ -17,13 +17,12 @@ import static net.serenitybdd.screenplay.GivenWhenThen.seeThat;
 @RunWith(SerenityRunner.class)
 public class AuthenticationCloud {
 
-    @Managed
+    @Managed(driver = "Appium")
     private WebDriver driver;
     private Actor cesar = Actor.named("Cesar");
 
     @Before
     public void prepareStage() {
-        //driver = AppiumDriverProviderCloud.getDriver();
         cesar.can(BrowseTheWeb.with(driver));
     }
 
