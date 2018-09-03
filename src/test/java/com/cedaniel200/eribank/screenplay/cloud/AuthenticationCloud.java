@@ -27,7 +27,7 @@ public class AuthenticationCloud {
     }
 
     @Test
-    public void iLogin() throws Throwable {
+    public void iLogin() {
         cesar.attemptsTo(Authenticate.the(user("company").withPassword("company")));
 
         cesar.should(seeThat(TheHomePage.isVisible()));
