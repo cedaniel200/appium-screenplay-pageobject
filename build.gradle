@@ -19,24 +19,22 @@ buildscript {
         jcenter()
     }
     dependencies {
-        classpath("net.serenity-bdd:serenity-gradle-plugin:1.9.9")
+        classpath("net.serenity-bdd:serenity-gradle-plugin:2.0.17")
     }
 }
 
 ext{
-    serenityVersion = '1.9.9'
-    serenityCucumberVersion = '1.9.7'
+    serenityVersion = '2.0.17'
+    serenityCucumberVersion = '1.9.20'
 }
 
 dependencies {
-    testCompile group: 'junit', name: 'junit', version: '4.12'
-
     testImplementation "net.serenity-bdd:serenity-core:$rootProject.ext.serenityVersion"
     testImplementation "net.serenity-bdd:serenity-junit:$rootProject.ext.serenityVersion"
     implementation "net.serenity-bdd:serenity-screenplay:$rootProject.ext.serenityVersion"
     implementation "net.serenity-bdd:serenity-cucumber:$rootProject.ext.serenityCucumberVersion"
 
-    implementation group: 'io.appium', name: 'java-client', version: '6.0.0'
+    implementation group: 'io.appium', name: 'java-client', version: '6.1.0'
 
     testImplementation 'junit:junit:4.12'
     testImplementation 'org.assertj:assertj-core:3.9.1'
