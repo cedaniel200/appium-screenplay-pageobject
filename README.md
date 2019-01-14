@@ -21,13 +21,13 @@ Un emulador o dispositivo de android corriendo
 
 Se debe configurar las siguientes propiedades:
 
-appium.hub Debe coincidir con la ip y puerto donde va a correr el appium server
+**appium.hub** Debe coincidir con la ip y puerto donde va a correr el appium server
 
-appium.platformVersion Version de anbdroid del emulador que vamos a utilizar
+**appium.platformVersion** Version de android del emulador que vamos a utilizar
 
-appium.app Ubicacion de la apk
+**appium.app** Ubicación de la apk
 
-appium.deviceName Nombre del emulador o dispositivo que vas a utilizar, para esto puedes utilizar el adb
+**appium.deviceName** Nombre del emulador o dispositivo que vas a utilizar, para esto puedes utilizar el adb
 
     adb devices
 
@@ -57,13 +57,13 @@ An emulator or android device running
 
 The following properties must be configured:
 
-appium.hub Must match the ip and port where the appium server will run
+**appium.hub** Must match the ip and port where the appium server will run
 
-appium.platformVersion Anbdroid version of the emulator that we are going to use
+**appium.platformVersion** Android version of the emulator that we are going to use
 
-appium.app Location of the apk
+**appium.app** Location of the apk
 
-appium.deviceName Name of the emulator or device that you are going to use, for this you can use the adb
+**appium.deviceName** Name of the emulator or device that you are going to use, for this you can use the adb
 
     adb devices
 
