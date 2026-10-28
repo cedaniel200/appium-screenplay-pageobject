@@ -45,7 +45,7 @@ public class CustomAppiumDriver implements DriverSource {
                 .setAppActivity(value("android.app.activity", "com.experitest.ExperiBank.LoginActivity"))
                 .setNoReset(Boolean.parseBoolean(value("app.no.reset", "true")));
         options.setCapability("appium:forceAppLaunch", true);
-        return new AndroidDriver(URI.create(value("appium.hub", "http://127.0.0.1:4723")).toURL(), options);
+        return new AndroidDriver(URI.create(value("hub", "http://127.0.0.1:4723")).toURL(), options);
     }
 
     private WebDriver iosDriver() throws Exception {
@@ -55,7 +55,7 @@ public class CustomAppiumDriver implements DriverSource {
                 .setBundleId(value("ios.app.bundle.id", "com.experitest.ExperiBank"))
                 .setNoReset(Boolean.parseBoolean(value("app.no.reset", "true")));
         options.setCapability("appium:forceAppLaunch", true);
-        return new IOSDriver(URI.create(value("appium.hub", "http://127.0.0.1:4723")).toURL(), options);
+        return new IOSDriver(URI.create(value("hub", "http://127.0.0.1:4723")).toURL(), options);
     }
 
     /**

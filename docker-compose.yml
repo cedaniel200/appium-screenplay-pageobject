@@ -14,12 +14,13 @@ services:
     build: .
     depends_on:
       - appium
+    environment:
+      MOBILE_HUB: http://appium:4723
+      MOBILE_ANDROID_DEVICE_NAME: host.docker.internal:5555
     command:
       - ./gradlew
       - test
       - aggregate
       - --no-daemon
-      - -Dappium.hub=http://appium:4723
-      - -Ddevice.name=host.docker.internal:5555
     volumes:
       - ./target:/app/target
