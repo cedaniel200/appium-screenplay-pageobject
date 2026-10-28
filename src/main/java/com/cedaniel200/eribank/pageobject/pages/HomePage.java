@@ -1,16 +1,17 @@
 package com.cedaniel200.eribank.pageobject.pages;
 
-import net.serenitybdd.core.pages.PageObject;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.FindBy;
+import io.appium.java_client.AppiumBy;
+import io.appium.java_client.android.AndroidDriver;
 
-public class HomePage extends PageObject {
+public class HomePage {
 
-    @FindBy(id = "com.experitest.ExperiBank:id/makePaymentButton")
-    private WebElement buttonMakePayment;
+    private final AndroidDriver driver;
 
-    public boolean isButtonMakePaymentVisible() {
-       return this.buttonMakePayment.isDisplayed();
+    public HomePage(AndroidDriver driver) {
+        this.driver = driver;
     }
 
+    public boolean isButtonMakePaymentVisible() {
+        return driver.findElement(AppiumBy.id("com.experitest.ExperiBank:id/makePaymentButton")).isDisplayed();
+    }
 }

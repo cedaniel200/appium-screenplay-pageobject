@@ -1,0 +1,25 @@
+services:
+  appium:
+    build: docker/appium
+    ports:
+      - "4723:4723"
+    environment:
+      EMULATOR_HOST: host.docker.internal:5555
+    volumes:
+      # La misma clave adb del host: el emulador ya la tiene autorizada.
+      - ~/.android/adbkey:/root/.android/adbkey:ro
+      - ~/.android/adbkey.pub:/root/.android/adbkey.pub:ro
+
+  tests:
+    build: .
+    depends_on:
+      - appium
+    command:
+      - ./gradlew
+      - test
+      - aggregate
+      - --no-daemon
+      - -Dappium.hub=http://appium:4723
+      - -Ddevice.name=host.docker.internal:5555
+    volumes:
+      - ./target:/app/target

@@ -1,30 +1,19 @@
 package com.cedaniel200.eribank.pageobject.pages;
 
-import net.serenitybdd.core.pages.PageObject;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.support.FindBy;
+import io.appium.java_client.AppiumBy;
+import io.appium.java_client.android.AndroidDriver;
 
-public class LoginPage extends PageObject{
+public class LoginPage {
 
-    @FindBy(id = "com.experitest.ExperiBank:id/usernameTextField")
-    private WebElement username;
-    @FindBy(id = "com.experitest.ExperiBank:id/passwordTextField")
-    private WebElement password;
-    @FindBy(id = "com.experitest.ExperiBank:id/loginButton")
-    private WebElement buttonLogin;
+    private final AndroidDriver driver;
 
-    private void enterValueOn(WebElement webElement, String value) {
-        webElement.sendKeys(value);
-    }
-
-    private void clickOnLogin() {
-        buttonLogin.click();
+    public LoginPage(AndroidDriver driver) {
+        this.driver = driver;
     }
 
     public void tryLogin(String username, String password) {
-        enterValueOn(this.username, username);
-        enterValueOn(this.password, password);
-        clickOnLogin();
+        driver.findElement(AppiumBy.id("com.experitest.ExperiBank:id/usernameTextField")).sendKeys(username);
+        driver.findElement(AppiumBy.id("com.experitest.ExperiBank:id/passwordTextField")).sendKeys(password);
+        driver.findElement(AppiumBy.id("com.experitest.ExperiBank:id/loginButton")).click();
     }
-
 }

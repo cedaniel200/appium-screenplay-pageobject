@@ -1,72 +1,110 @@
 # appium-screenplay-pageobject
-# [Español]
 
-Proyecto donde se muestra el uso del patrón serenity screenplay con cucumber, gradle y Appium.
+Mismo escenario de login resuelto de dos formas —Page Object y Screenplay— sobre una app Android
+nativa con Appium. Sirve para comparar ambos patrones con el mismo caso y los mismos localizadores.
 
-Las pruebas de este ejemplo se corren contra la aplicacion EriBank para dispositivos Android, cuyo apk se encuentra en src/test/resources/app/EriBank.apk
+La aplicación automatizada es **EriBank** (`1.0.1777`), incluida en `src/test/resources/app/EriBank.apk`.
 
-## Requerimientos
+## Qué demuestra
 
-Para correr el proyecto se necesita:
+| Implementación | Paquete | Cómo resuelve el login |
+|---|---|---|
+| Page Object | `eribank.pageobject` | Clases de página con métodos por pantalla |
+| Screenplay | `eribank.screenplay` | Tareas, preguntas y un modelo con builder |
 
-Java JDK 1.8
- 
-Gradle preferiblemente con la versión 4.7.
+Ambas se ejecutan en suites separadas (`PageObjectTestSuite` y `ScreenplayTestSuite`) contra el
+mismo `authentication.feature`.
 
-Appium Server version 1.7.2 o superior
+## Requisitos
 
-Un emulador o dispositivo de android corriendo
+- **JDK 17** (toolchain del build).
+- **Android SDK** con un emulador creado y arrancado (`Pixel_2_API_28`, arm64).
+- **Appium 3.9** con el driver `uiautomator2`:
+  ```sh
+  npm i -g appium@3.9.0
+  appium driver install uiautomator2@8.7.2
+  ```
+- **La app instalada** en el emulador:
+  ```sh
+  adb install -r src/test/resources/app/EriBank.apk
+  ```
+- **Appium corriendo** en `http://127.0.0.1:4723`.
 
-## Configurar serenity.properties
+> [!NOTE]
+> En el primer arranque Android muestra el aviso «esta app se construyó para una versión anterior».
+> Hay que pulsarlo una vez; no vuelve a aparecer.
 
-Se debe configurar las siguientes propiedades:
+## Cómo se ejecuta
 
-**appium.hub** Debe coincidir con la ip y puerto donde va a correr el appium server
+```sh
+appium &
+./gradlew test
+```
 
-**appium.platformVersion** Version de android del emulador que vamos a utilizar
+El informe queda en `target/site/serenity/index.html`.
 
-**appium.app** Ubicación de la apk
+## Arquitectura: por qué no se usan los verbos de Serenity
 
-**appium.deviceName** Nombre del emulador o dispositivo que vas a utilizar, para esto puedes utilizar el adb
+Serenity 5 resuelve la visibilidad y la interacción de elementos **ejecutando JavaScript**. En una
+app nativa, UiAutomator2 no implementa scripts y responde `405`, y con la configuración habitual
+(`webdriver.driver=appium`) la sesión ni siquiera arranca (`NotYetImplementedError`).
 
-    adb devices
+Por eso el proyecto hace dos cosas:
 
-Para que el anterior comando funcione adb debe estar como variable de entorno
+1. **`webdriver.driver=provided`** con `CustomAppiumDriver`, que crea la sesión con `UiAutomator2Options`
+   y se la entrega a Serenity ya hecha. Serenity no configura nada y sigue generando los reportes.
+2. **Interacción con el driver nativo**: la clase `MobileDriver` extrae el `AndroidDriver` de detrás
+   del `WebDriverFacade`, y tareas, preguntas y páginas usan `AppiumBy.id` directamente.
 
-### Si tiene alguna pregunta, puede escribirme a cdanielmg200@gmail.com
+La estructura de Screenplay se conserva —actor, tareas, preguntas—, pero los verbos son nativos.
 
-# [English]
+La plataforma se elige por configuración: `-Dplatform=android` (por defecto) o `-Dplatform=ios`,
+con opciones de XCUITest en el segundo caso. **iOS no está probado**: no hay dispositivo en este
+entorno.
 
-Project showing the use of the serenity screenplay pattern with cucumber, gradle and Appium.
+## Docker
 
-The tests in this example are run against the EriBank application for Android devices, whose apk is in src/test/resources/app/EriBank.apk
+El **emulador no va en el contenedor**: las imágenes de Android en Docker son x86 y en un Mac ARM
+son inviables. Dockeriza Appium; el emulador se queda en el host.
 
-## Requirements
+```sh
+# una sola vez: dejar el emulador escuchando en TCP
+adb tcpip 5555
 
-To run the project you need:
+docker compose up --abort-on-container-exit
+```
 
-Java JDK 1.8
- 
-Gradle preferably with version 4.7.
+| Servicio | Rol |
+|---|---|
+| `appium` | Appium 3.9 + `uiautomator2`, imagen propia para arm64 |
+| `tests` | JDK 17 que ejecuta la suite contra `appium:4723` |
 
-Appium Server version 1.7.2 or later
+El contenedor de Appium usa la misma clave `adb` del host (montada en el compose), porque el
+emulador ya la tiene autorizada.
 
-An emulator or android device running
+## Estructura
 
-## Configure serenity.properties
+```text
+src/main/java/com/cedaniel200/eribank
+├── driver/CustomAppiumDriver.java   # DriverSource: crea la sesión nativa
+├── support/MobileDriver.java        # extrae el AndroidDriver del actor
+├── pageobject/{pages,steps}         # implementación con Page Object
+└── screenplay/{tasks,questions,models,userinterfaces,utils}
 
-The following properties must be configured:
+src/test
+├── java/.../pageobject/runners/PageObjectTestSuite.java
+├── java/.../screenplay/runners/ScreenplayTestSuite.java
+├── java/.../{pageobject,screenplay}/stepdefinitions/
+└── resources/features/authentication.feature
+```
 
-**appium.hub** Must match the ip and port where the appium server will run
+## Ten en cuenta
 
-**appium.platformVersion** Android version of the emulator that we are going to use
+- **EriBank no se actualiza desde 2019.** El enlace oficial sigue vivo, pero no hay versión más
+  reciente; su `targetSdk` antiguo provoca el aviso de compatibilidad.
+- **El emulador debe estar arrancado** antes de ejecutar. Ni el build ni el compose lo levantan.
+- **Las credenciales son de la app** (`company` / `company`), no datos reales.
 
-**appium.app** Location of the apk
+## Licencia
 
-**appium.deviceName** Name of the emulator or device that you are going to use, for this you can use the adb
-
-    adb devices
-
-For the previous command to work adb must be as environment variable
-
-### If you have any questions you can write me at cdanielmg200@gmail.com
+[MIT](LICENSE) © Cesar Daniel

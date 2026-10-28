@@ -1,11 +1,11 @@
 package com.cedaniel200.eribank.screenplay.stepdefinitions;
 
-import com.cedaniel200.eribank.screenplay.model.builder.UserBuilder;
+import com.cedaniel200.eribank.screenplay.models.builder.UserBuilder;
 import com.cedaniel200.eribank.screenplay.questions.TheHomePage;
 import com.cedaniel200.eribank.screenplay.tasks.Authenticate;
-import cucumber.api.java.Before;
-import cucumber.api.java.en.Then;
-import cucumber.api.java.en.When;
+import io.cucumber.java.Before;
+import io.cucumber.java.en.Then;
+import io.cucumber.java.en.When;
 import net.serenitybdd.screenplay.GivenWhenThen;
 import net.serenitybdd.screenplay.actors.OnStage;
 import net.serenitybdd.screenplay.actors.OnlineCast;

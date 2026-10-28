@@ -1,4 +1,4 @@
-package com.cedaniel200.eribank.screenplay.util;
+package com.cedaniel200.eribank.screenplay.utils;
 
 public interface Builder <T> {
 

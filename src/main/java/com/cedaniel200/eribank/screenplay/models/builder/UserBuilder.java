@@ -1,7 +1,7 @@
-package com.cedaniel200.eribank.screenplay.model.builder;
+package com.cedaniel200.eribank.screenplay.models.builder;
 
-import com.cedaniel200.eribank.screenplay.model.User;
-import com.cedaniel200.eribank.screenplay.util.Builder;
+import com.cedaniel200.eribank.screenplay.models.User;
+import com.cedaniel200.eribank.screenplay.utils.Builder;
 
 public class UserBuilder implements Builder<User> {
 
