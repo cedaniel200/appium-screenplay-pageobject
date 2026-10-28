@@ -1,72 +1,122 @@
 # appium-screenplay-pageobject
-# [Español]
 
-Proyecto donde se muestra el uso del patrón serenity screenplay con cucumber, gradle y Appium.
+Mismo escenario de login resuelto de dos formas —Page Object y Screenplay— sobre una app Android
+nativa con Appium. Sirve para comparar ambos patrones con el mismo caso y los mismos localizadores.
 
-Las pruebas de este ejemplo se corren contra la aplicacion EriBank para dispositivos Android, cuyo apk se encuentra en src/test/resources/app/EriBank.apk
+La aplicación automatizada es **EriBank** (`1.0.1777`), incluida en `src/test/resources/app/EriBank.apk`.
 
-## Requerimientos
+## Qué incluye
 
-Para correr el proyecto se necesita:
+| Implementación | Paquete | Cómo resuelve el login |
+|---|---|---|
+| Page Object | `eribank.pageobject` | Una clase por pantalla, con los localizadores como constantes y métodos de negocio |
+| Screenplay | `eribank.screenplay` | Tareas, preguntas y un modelo con builder |
 
-Java JDK 1.8
- 
-Gradle preferiblemente con la versión 4.7.
+Ambas se ejecutan en suites separadas (`PageObjectTestSuite` y `ScreenplayTestSuite`) contra el
+mismo `authentication.feature`.
 
-Appium Server version 1.7.2 o superior
+## Requisitos
 
-Un emulador o dispositivo de android corriendo
+- **JDK 17** (toolchain del build).
+- **Android SDK** con un emulador creado y arrancado (`Pixel_2_API_28`, arm64).
+- **Appium 3.9** con el driver `uiautomator2`:
+  ```sh
+  npm i -g appium@3.9.0
+  appium driver install uiautomator2@8.7.2
+  ```
+- **La app instalada** en el emulador:
+  ```sh
+  adb install -r src/test/resources/app/EriBank.apk
+  ```
+- **Appium corriendo** en `http://127.0.0.1:4723`.
 
-## Configurar serenity.properties
+> [!NOTE]
+> En el primer arranque Android muestra el aviso «esta app se construyó para una versión anterior».
+> Hay que pulsarlo una vez; no vuelve a aparecer.
 
-Se debe configurar las siguientes propiedades:
+## Cómo se ejecuta
 
-**appium.hub** Debe coincidir con la ip y puerto donde va a correr el appium server
+```sh
+appium &
+./gradlew test
+```
 
-**appium.platformVersion** Version de android del emulador que vamos a utilizar
+El informe queda en `target/site/serenity/index.html`.
 
-**appium.app** Ubicación de la apk
+## Configuración
 
-**appium.deviceName** Nombre del emulador o dispositivo que vas a utilizar, para esto puedes utilizar el adb
+Todo lo que depende del entorno vive en el bloque `mobile` de `src/test/resources/serenity.conf`:
+plataforma, hub, dispositivo, versión y datos de la app. Cualquier clave se puede sobrescribir en la
+línea de comandos:
 
-    adb devices
+```sh
+./gradlew test -Dmobile.android.device.name=host.docker.internal:5555
+```
 
-Para que el anterior comando funcione adb debe estar como variable de entorno
+El bloque tiene una sección para Android y otra para iOS, y `mobile.platform` decide cuál se usa.
 
-### Si tiene alguna pregunta, puede escribirme a cdanielmg200@gmail.com
+## Arquitectura: por qué no se usan los verbos de Serenity
 
-# [English]
+Serenity 5 resuelve la visibilidad y la interacción de elementos **ejecutando JavaScript**. En una
+app nativa, UiAutomator2 no implementa scripts y responde `405`, y con la configuración habitual
+(`webdriver.driver=appium`) la sesión ni siquiera arranca (`NotYetImplementedError`).
 
-Project showing the use of the serenity screenplay pattern with cucumber, gradle and Appium.
+Por eso el proyecto hace dos cosas:
 
-The tests in this example are run against the EriBank application for Android devices, whose apk is in src/test/resources/app/EriBank.apk
+1. **`webdriver.driver=provided`** con `CustomAppiumDriver`, que crea la sesión con `UiAutomator2Options`
+   y se la entrega a Serenity ya hecha. Serenity no configura nada y sigue generando los reportes.
+2. **Interacción con el driver nativo**: la clase `MobileDriver` extrae el `AndroidDriver` de detrás
+   del `WebDriverFacade`, y tareas, preguntas y páginas usan `AppiumBy.id` directamente.
 
-## Requirements
+La estructura de Screenplay se conserva —actor, tareas, preguntas—, pero los verbos son nativos.
 
-To run the project you need:
+La plataforma se elige por configuración: `-Dplatform=android` (por defecto) o `-Dplatform=ios`,
+con opciones de XCUITest en el segundo caso. **iOS no está probado**: no hay dispositivo en este
+entorno.
 
-Java JDK 1.8
- 
-Gradle preferably with version 4.7.
+## Docker
 
-Appium Server version 1.7.2 or later
+El **emulador no va en el contenedor**: las imágenes de Android en Docker son x86 y en un Mac ARM
+son inviables. Dockeriza Appium; el emulador se queda en el host.
 
-An emulator or android device running
+```sh
+# una sola vez: dejar el emulador escuchando en TCP
+adb tcpip 5555
 
-## Configure serenity.properties
+docker compose up --abort-on-container-exit
+```
 
-The following properties must be configured:
+| Servicio | Rol |
+|---|---|
+| `appium` | Appium 3.9 + `uiautomator2`, imagen propia para arm64 |
+| `tests` | JDK 17 que ejecuta la suite contra `appium:4723` |
 
-**appium.hub** Must match the ip and port where the appium server will run
+El contenedor de Appium usa la misma clave `adb` del host (montada en el compose), porque el
+emulador ya la tiene autorizada.
 
-**appium.platformVersion** Android version of the emulator that we are going to use
+## Estructura
 
-**appium.app** Location of the apk
+```text
+src/main/java/com/cedaniel200/eribank
+├── driver/CustomAppiumDriver.java   # DriverSource: crea la sesión nativa
+├── support/MobileDriver.java        # extrae el AndroidDriver del actor
+├── pageobject/{pages,steps}         # implementación con Page Object
+└── screenplay/{tasks,questions,models,userinterfaces,utils}
 
-**appium.deviceName** Name of the emulator or device that you are going to use, for this you can use the adb
+src/test
+├── java/.../pageobject/runners/PageObjectTestSuite.java
+├── java/.../screenplay/runners/ScreenplayTestSuite.java
+├── java/.../{pageobject,screenplay}/stepdefinitions/
+└── resources/features/authentication.feature
+```
 
-    adb devices
+## Ten en cuenta
 
-For the previous command to work adb must be as environment variable
+- **EriBank no se actualiza desde 2019.** El enlace oficial sigue vivo, pero no hay versión más
+  reciente; su `targetSdk` antiguo provoca el aviso de compatibilidad.
+- **El emulador debe estar arrancado** antes de ejecutar. Ni el build ni el compose lo levantan.
+- **Las credenciales son de la app** (`company` / `company`), no datos reales.
 
-### If you have any questions you can write me at cdanielmg200@gmail.com
+## Licencia
+
+[MIT](LICENSE) © Cesar Daniel
