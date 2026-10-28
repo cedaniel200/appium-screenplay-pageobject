@@ -1,4 +1,10 @@
-# appium-screenplay-pageobject
+# Serenity BDD + Screenplay — Demo Appium
+
+![Java](https://img.shields.io/badge/Java-17-blue)
+![Serenity BDD](https://img.shields.io/badge/Serenity%20BDD-5.4.1-green)
+![Cucumber](https://img.shields.io/badge/Cucumber-8.0.4-brightgreen)
+![Gradle](https://img.shields.io/badge/Gradle-9.8.2-darkgreen)
+[![License](https://img.shields.io/badge/License-MIT-yellow)](LICENSE)
 
 Mismo escenario de login resuelto de dos formas —Page Object y Screenplay— sobre una app Android
 nativa con Appium. Sirve para comparar ambos patrones con el mismo caso y los mismos localizadores.
