@@ -9,7 +9,7 @@ La aplicación automatizada es **EriBank** (`1.0.1777`), incluida en `src/test/r
 
 | Implementación | Paquete | Cómo resuelve el login |
 |---|---|---|
-| Page Object | `eribank.pageobject` | Clases de página con métodos por pantalla |
+| Page Object | `eribank.pageobject` | Una clase por pantalla, con los localizadores como constantes y métodos de negocio |
 | Screenplay | `eribank.screenplay` | Tareas, preguntas y un modelo con builder |
 
 Ambas se ejecutan en suites separadas (`PageObjectTestSuite` y `ScreenplayTestSuite`) contra el
@@ -42,6 +42,18 @@ appium &
 ```
 
 El informe queda en `target/site/serenity/index.html`.
+
+## Configuración
+
+Todo lo que depende del entorno vive en `src/test/resources/mobile.properties`: plataforma, hub,
+dispositivo, versión y datos de la app. Cualquier clave se puede sobrescribir en la línea de
+comandos:
+
+```sh
+./gradlew test -Ddevice.name=host.docker.internal:5555 -Dappium.hub=http://127.0.0.1:4723
+```
+
+El archivo tiene una sección para Android y otra para iOS, y `platform` decide cuál se usa.
 
 ## Arquitectura: por qué no se usan los verbos de Serenity
 

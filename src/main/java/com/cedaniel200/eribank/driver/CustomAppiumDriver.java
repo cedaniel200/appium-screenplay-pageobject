@@ -7,22 +7,25 @@ import io.appium.java_client.ios.options.XCUITestOptions;
 import net.thucydides.core.webdriver.DriverSource;
 import org.openqa.selenium.WebDriver;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
+import java.util.Properties;
 
 /**
  * Levanta la sesión de Appium con la API nativa de java-client y se la entrega a Serenity ya
  * creada, para que no intente configurarla con comandos web que UiAutomator2 rechaza.
  *
- * <p>La plataforma se elige por configuración, no en el código: {@code -Dplatform=android|ios}
- * (por defecto Android).</p>
+ * <p>Los valores salen de {@code mobile.properties}; cualquier clave se puede sobrescribir con
+ * {@code -Dclave=valor}.</p>
  */
 public class CustomAppiumDriver implements DriverSource {
 
-    private static final String HUB = System.getProperty("appium.hub", "http://127.0.0.1:4723");
+    private final Properties config = loadConfig();
 
     @Override
     public WebDriver newDriver() {
-        String platform = System.getProperty("platform", "android").toLowerCase();
+        String platform = value("platform", "android").toLowerCase();
         try {
             return switch (platform) {
                 case "android" -> androidDriver();
@@ -37,23 +40,41 @@ public class CustomAppiumDriver implements DriverSource {
 
     private WebDriver androidDriver() throws Exception {
         UiAutomator2Options options = new UiAutomator2Options()
-                .setPlatformVersion(System.getProperty("platform.version", "9"))
-                .setDeviceName(System.getProperty("device.name", "emulator-5554"))
-                .setAppPackage(System.getProperty("app.package", "com.experitest.ExperiBank"))
-                .setAppActivity(System.getProperty("app.activity", "com.experitest.ExperiBank.LoginActivity"))
-                .setNoReset(Boolean.parseBoolean(System.getProperty("app.no.reset", "true")));
+                .setPlatformVersion(value("platform.version", "9"))
+                .setDeviceName(value("device.name", "emulator-5554"))
+                .setAppPackage(value("app.package", "com.experitest.ExperiBank"))
+                .setAppActivity(value("app.activity", "com.experitest.ExperiBank.LoginActivity"))
+                .setNoReset(Boolean.parseBoolean(value("app.no.reset", "true")));
         options.setCapability("appium:forceAppLaunch", true);
-        return new AndroidDriver(URI.create(HUB).toURL(), options);
+        return new AndroidDriver(URI.create(value("appium.hub", "http://127.0.0.1:4723")).toURL(), options);
     }
 
     private WebDriver iosDriver() throws Exception {
         XCUITestOptions options = new XCUITestOptions()
-                .setPlatformVersion(System.getProperty("platform.version", "17"))
-                .setDeviceName(System.getProperty("device.name", "iPhone 15"))
-                .setBundleId(System.getProperty("app.bundle.id", "com.experitest.ExperiBank"))
-                .setNoReset(Boolean.parseBoolean(System.getProperty("app.no.reset", "true")));
+                .setPlatformVersion(value("ios.platform.version", "17"))
+                .setDeviceName(value("ios.device.name", "iPhone 15"))
+                .setBundleId(value("app.bundle.id", "com.experitest.ExperiBank"))
+                .setNoReset(Boolean.parseBoolean(value("app.no.reset", "true")));
         options.setCapability("appium:forceAppLaunch", true);
-        return new IOSDriver(URI.create(HUB).toURL(), options);
+        return new IOSDriver(URI.create(value("appium.hub", "http://127.0.0.1:4723")).toURL(), options);
+    }
+
+    /** Propiedad del sistema si existe; si no, el valor del archivo; si no, el valor por defecto. */
+    private String value(String key, String fallback) {
+        return System.getProperty(key, config.getProperty(key, fallback));
+    }
+
+    private static Properties loadConfig() {
+        Properties properties = new Properties();
+        try (InputStream in = CustomAppiumDriver.class.getClassLoader()
+                .getResourceAsStream("mobile.properties")) {
+            if (in != null) {
+                properties.load(in);
+            }
+        } catch (IOException e) {
+            throw new IllegalStateException("No se pudo leer mobile.properties", e);
+        }
+        return properties;
     }
 
     @Override
