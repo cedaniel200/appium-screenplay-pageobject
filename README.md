@@ -5,7 +5,7 @@ nativa con Appium. Sirve para comparar ambos patrones con el mismo caso y los mi
 
 La aplicación automatizada es **EriBank** (`1.0.1777`), incluida en `src/test/resources/app/EriBank.apk`.
 
-## Qué demuestra
+## Qué incluye
 
 | Implementación | Paquete | Cómo resuelve el login |
 |---|---|---|
@@ -45,15 +45,15 @@ El informe queda en `target/site/serenity/index.html`.
 
 ## Configuración
 
-Todo lo que depende del entorno vive en `src/test/resources/mobile.properties`: plataforma, hub,
-dispositivo, versión y datos de la app. Cualquier clave se puede sobrescribir en la línea de
-comandos:
+Todo lo que depende del entorno vive en el bloque `mobile` de `src/test/resources/serenity.conf`:
+plataforma, hub, dispositivo, versión y datos de la app. Cualquier clave se puede sobrescribir en la
+línea de comandos:
 
 ```sh
-./gradlew test -Ddevice.name=host.docker.internal:5555 -Dappium.hub=http://127.0.0.1:4723
+./gradlew test -Dmobile.android.device.name=host.docker.internal:5555
 ```
 
-El archivo tiene una sección para Android y otra para iOS, y `platform` decide cuál se usa.
+El bloque tiene una sección para Android y otra para iOS, y `mobile.platform` decide cuál se usa.
 
 ## Arquitectura: por qué no se usan los verbos de Serenity
 

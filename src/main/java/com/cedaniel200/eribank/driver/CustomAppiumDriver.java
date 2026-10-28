@@ -5,23 +5,22 @@ import io.appium.java_client.android.options.UiAutomator2Options;
 import io.appium.java_client.ios.IOSDriver;
 import io.appium.java_client.ios.options.XCUITestOptions;
 import net.thucydides.core.webdriver.DriverSource;
+import com.typesafe.config.Config;
+import com.typesafe.config.ConfigFactory;
 import org.openqa.selenium.WebDriver;
 
-import java.io.IOException;
-import java.io.InputStream;
 import java.net.URI;
-import java.util.Properties;
 
 /**
  * Levanta la sesión de Appium con la API nativa de java-client y se la entrega a Serenity ya
  * creada, para que no intente configurarla con comandos web que UiAutomator2 rechaza.
  *
- * <p>Los valores salen de {@code mobile.properties}; cualquier clave se puede sobrescribir con
- * {@code -Dclave=valor}.</p>
+ * <p>Los valores salen del bloque {@code mobile} de {@code serenity.conf}; cualquier clave se puede
+ * sobrescribir con {@code -Dmobile.<clave>=valor}.</p>
  */
 public class CustomAppiumDriver implements DriverSource {
 
-    private final Properties config = loadConfig();
+    private static final Config MOBILE = ConfigFactory.parseResources("serenity.conf").getConfig("mobile");
 
     @Override
     public WebDriver newDriver() {
@@ -40,10 +39,10 @@ public class CustomAppiumDriver implements DriverSource {
 
     private WebDriver androidDriver() throws Exception {
         UiAutomator2Options options = new UiAutomator2Options()
-                .setPlatformVersion(value("platform.version", "9"))
-                .setDeviceName(value("device.name", "emulator-5554"))
-                .setAppPackage(value("app.package", "com.experitest.ExperiBank"))
-                .setAppActivity(value("app.activity", "com.experitest.ExperiBank.LoginActivity"))
+                .setPlatformVersion(value("android.platform.version", "9"))
+                .setDeviceName(value("android.device.name", "emulator-5554"))
+                .setAppPackage(value("android.app.package", "com.experitest.ExperiBank"))
+                .setAppActivity(value("android.app.activity", "com.experitest.ExperiBank.LoginActivity"))
                 .setNoReset(Boolean.parseBoolean(value("app.no.reset", "true")));
         options.setCapability("appium:forceAppLaunch", true);
         return new AndroidDriver(URI.create(value("appium.hub", "http://127.0.0.1:4723")).toURL(), options);
@@ -53,28 +52,27 @@ public class CustomAppiumDriver implements DriverSource {
         XCUITestOptions options = new XCUITestOptions()
                 .setPlatformVersion(value("ios.platform.version", "17"))
                 .setDeviceName(value("ios.device.name", "iPhone 15"))
-                .setBundleId(value("app.bundle.id", "com.experitest.ExperiBank"))
+                .setBundleId(value("ios.app.bundle.id", "com.experitest.ExperiBank"))
                 .setNoReset(Boolean.parseBoolean(value("app.no.reset", "true")));
         options.setCapability("appium:forceAppLaunch", true);
         return new IOSDriver(URI.create(value("appium.hub", "http://127.0.0.1:4723")).toURL(), options);
     }
 
-    /** Propiedad del sistema si existe; si no, el valor del archivo; si no, el valor por defecto. */
+    /**
+     * Prioridad: variable de entorno MOBILE_<CLAVE>, luego -Dmobile.<clave>, luego el bloque
+     * mobile de serenity.conf, luego el valor por defecto. Se lee el archivo directamente porque la instancia de EnvironmentVariables que
+     * recibe el DriverSource no incluye ese bloque.
+     */
     private String value(String key, String fallback) {
-        return System.getProperty(key, config.getProperty(key, fallback));
-    }
-
-    private static Properties loadConfig() {
-        Properties properties = new Properties();
-        try (InputStream in = CustomAppiumDriver.class.getClassLoader()
-                .getResourceAsStream("mobile.properties")) {
-            if (in != null) {
-                properties.load(in);
-            }
-        } catch (IOException e) {
-            throw new IllegalStateException("No se pudo leer mobile.properties", e);
+        String fromEnvironment = System.getenv("MOBILE_" + key.toUpperCase().replace('.', '_'));
+        if (fromEnvironment != null) {
+            return fromEnvironment;
         }
-        return properties;
+        String property = System.getProperty("mobile." + key);
+        if (property != null) {
+            return property;
+        }
+        return MOBILE.hasPath(key) ? MOBILE.getString(key) : fallback;
     }
 
     @Override
